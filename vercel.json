@@ -9,6 +9,9 @@
     },
     "api/cron.js": {
       "maxDuration": 60
+    },
+    "api/setup.js": {
+      "maxDuration": 60
     }
   },
   "crons": [

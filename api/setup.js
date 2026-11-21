@@ -1,7 +1,7 @@
 // Один раз открыть в браузере: https://<проект>.vercel.app/api/setup?key=<SETUP_KEY>
 import { TOKEN } from '../lib/telegram.js';
 import { redis } from '../lib/redis.js';
-import { testGemini } from '../lib/vision.js';
+import { listModels } from '../lib/vision.js';
 
 export default async function handler(req, res) {
   const key = new URL(req.url, 'http://x').searchParams.get('key');
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   try { await redis('PING'); } catch (e) { db = 'НЕТ БАЗЫ: ' + e.message + ' — подключите Storage → Upstash Redis и Redeploy'; }
   let gemini = 'нет ключа — отправьте ключ боту в личку';
   const gk = process.env.GEMINI_API_KEY || await redis('GET', 'gemini_key').catch(() => null);
-  if (gk) { const t = await testGemini(gk); gemini = t.error ? 'ошибка: ' + t.error : 'ok (' + t.model + ')'; }
+  if (gk) { try { const ms = await listModels(gk); gemini = 'ok (' + ms[0] + ')'; } catch (e) { gemini = 'ошибка: ' + e.message; } }
   const api = `https://api.telegram.org/bot${TOKEN()}`;
   const post = (m, b) => fetch(`${api}/${m}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json());
   const hook = await post('setWebhook', {

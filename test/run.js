@@ -102,3 +102,10 @@ o = await say('/stock');
 assert(o === '', 'чужая группа игнорируется');
 o = await say('/id');
 assert(/-100/.test(o), '/id работает всегда');
+
+// ---- месяц ----
+delete process.env.ALLOWED_CHATS;
+const before = sent.length;
+await handleUpdate({ message: { message_id: 1000, chat: { id: 7, type: 'private' }, from: { id: 7 }, text: '/month 11.2026' } });
+const mo = sent.slice(before);
+assert(mo.some(x => /Продажи бара за ноябрь 2026/.test(x.text || '')) && mo.some(x => x.method === 'sendDocument' && /prodazhi_bar_2026-11/.test(x.filename)), '/month: итог месяца + CSV в личку');

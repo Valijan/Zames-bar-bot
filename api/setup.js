@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     allowed_updates: ['message'], drop_pending_updates: true,
   });
   const cmds = await post('setMyCommands', { commands: [
-    ['stock', 'Остатки'], ['report', 'Отчёт: /report 16.11-20.11'], ['foodcost', 'Фудкост по позициям'],
+    ['month', 'Продажи за месяц'], ['stock', 'Остатки'], ['report', 'Отчёт: /report 16.11-20.11'], ['foodcost', 'Фудкост по позициям'],
     ['tk', 'Техкарта: /tk ассам'], ['done', 'Внести продажи из фото'], ['cancel', 'Сбросить черновик продаж'],
     ['price', 'Цена: /price Молоко 1 л 12000'], ['alias', 'Синоним продукта'], ['undo', 'Отменить мою последнюю операцию'],
     ['topic', 'Назначить тип теме'], ['id', 'id чата'], ['help', 'Как пользоваться'],

@@ -35,5 +35,7 @@ export default async function handler(req, res) {
   await post('setMyDescription', { description: 'Учёт бара ZAMES: приход, списание, перемещения на кухню/в пиццерию/в кондитерскую, продажи по фото iiko, остатки и фудкост. Добавьте в рабочую группу и сделайте админом.' });
   await post('setMyShortDescription', { short_description: 'Учёт бара ZAMES: остатки, списания, фудкост' });
   const me = await post('getMe', {});
-  res.status(200).json({ bot: me.result?.username, webhook: hook.ok ? 'подключён' : hook, redis: db, gemini, commands: cmds.ok });
+  await new Promise(r => setTimeout(r, 1500));
+  const info = (await post('getWebhookInfo', {})).result || {};
+  res.status(200).json({ tg_last_error: info.last_error_message || 'нет', tg_last_error_date: info.last_error_date ? new Date(info.last_error_date * 1000).toISOString() : null, tg_pending: info.pending_update_count, tg_url: info.url, bot: me.result?.username, webhook: hook.ok ? 'подключён' : hook, redis: db, gemini, commands: cmds.ok });
 }

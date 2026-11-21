@@ -1,8 +1,14 @@
 // Один раз открыть в браузере: https://<проект>.vercel.app/api/setup?key=<SETUP_KEY>
+import { TOKEN } from '../lib/telegram.js';
+import { redis } from '../lib/redis.js';
+
 export default async function handler(req, res) {
   const key = new URL(req.url, 'http://x').searchParams.get('key');
-  if (!process.env.SETUP_KEY || key !== process.env.SETUP_KEY) return res.status(401).send('Нужен ?key=SETUP_KEY');
-  const api = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+  if (process.env.SETUP_KEY && key !== process.env.SETUP_KEY) return res.status(401).send('Нужен ?key=SETUP_KEY');
+  if (!TOKEN()) return res.status(500).send('Нет токена бота: добавьте переменную TELEGRAM_BOT_TOKEN в Vercel → Settings → Environment Variables и сделайте Redeploy');
+  let db = 'ok';
+  try { await redis('PING'); } catch (e) { db = 'НЕТ БАЗЫ: ' + e.message + ' — подключите Storage → Upstash Redis и Redeploy'; }
+  const api = `https://api.telegram.org/bot${TOKEN()}`;
   const post = (m, b) => fetch(`${api}/${m}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json());
   const hook = await post('setWebhook', {
     url: `https://${req.headers.host}/api/telegram`,
@@ -20,5 +26,5 @@ export default async function handler(req, res) {
   await post('setMyDescription', { description: 'Учёт бара ZAMES: приход, списание, перемещения на кухню/в пиццерию/в кондитерскую, продажи по фото iiko, остатки и фудкост. Добавьте в рабочую группу и сделайте админом.' });
   await post('setMyShortDescription', { short_description: 'Учёт бара ZAMES: остатки, списания, фудкост' });
   const me = await post('getMe', {});
-  res.status(200).json({ webhook: hook, commands: cmds, bot: me.result?.username });
+  res.status(200).json({ bot: me.result?.username, webhook: hook.ok ? 'подключён' : hook, redis: db, commands: cmds.ok });
 }

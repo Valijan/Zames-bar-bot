@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (!TOKEN()) return res.status(500).send('Нет токена бота: добавьте переменную TELEGRAM_BOT_TOKEN в Vercel → Settings → Environment Variables и сделайте Redeploy');
   let db = 'ok';
   try { await redis('PING'); } catch (e) { db = 'НЕТ БАЗЫ: ' + e.message + ' — подключите Storage → Upstash Redis и Redeploy'; }
-  let gemini = 'нет ключа — отправьте боту в личку /gemini AIza…';
+  let gemini = 'нет ключа — отправьте ключ боту в личку';
   const gk = process.env.GEMINI_API_KEY || await redis('GET', 'gemini_key').catch(() => null);
   if (gk) { const t = await testGemini(gk); gemini = t.error ? 'ошибка: ' + t.error : 'ok (' + t.model + ')'; }
   const api = `https://api.telegram.org/bot${TOKEN()}`;
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     allowed_updates: ['message'], drop_pending_updates: true,
   });
   const cmds = await post('setMyCommands', { commands: [
-    ['month', 'Продажи за месяц'], ['stock', 'Остатки'], ['report', 'Отчёт: /report 16.11-20.11'], ['foodcost', 'Фудкост по позициям'],
+    ['month', 'Продажи за месяц'], ['order', 'Что заказать'], ['prices', 'Цены поставщиков'], ['calc', 'Цена новой позиции'], ['dept', 'Склады цехов'], ['shifts', 'Смены и недостачи'], ['shift', 'Кто на смене'], ['sheet', 'Google Таблица'], ['stock', 'Остатки'], ['report', 'Отчёт: /report 16.11-20.11'], ['foodcost', 'Фудкост по позициям'],
     ['tk', 'Техкарта: /tk ассам'], ['done', 'Внести продажи из фото'], ['cancel', 'Сбросить черновик продаж'],
     ['price', 'Цена: /price Молоко 1 л 12000'], ['alias', 'Синоним продукта'], ['undo', 'Отменить мою последнюю операцию'],
     ['topic', 'Назначить тип теме'], ['id', 'id чата'], ['help', 'Как пользоваться'],

@@ -2,6 +2,7 @@ import { handleUpdate } from '../lib/bot.js';
 import { sent } from '../lib/telegram.js';
 import { products } from '../lib/store.js';
 
+process.env.QUIET = '0';
 let id = 1;
 const topicMsg = name => ({ message_id: 0, forum_topic_created: { name } });
 const say = async (text, topic, extra = {}) => {
@@ -74,6 +75,27 @@ assert(p['Сгущенка'].stock === 2, 'undo вернул остаток');
 
 o = await say('/price Сливки 10% 1 л 32000');
 assert(/Сливки 10%: 32 000 сум за 1 л/.test(o), 'ручная цена');
+
+// ---- тихий режим (как в группе по умолчанию) ----
+process.env.QUIET = '1';
+let b = sent.length;
+await say('Молоко 1 л', 'Списание');
+let last = sent.slice(b);
+assert(last.length === 1 && last[0].method === 'setMessageReaction' && last[0].reaction[0].emoji === '👍', 'тихо: только реакция 👍');
+b = sent.length;
+await say('Ананасы 2 кг', 'Списание');
+assert(sent.slice(b)[0].reaction?.[0].emoji === '🤔', 'тихо: непонятное — 🤔');
+b = sent.length;
+await say('/problems');
+last = sent.slice(b);
+assert(last.some(x => x.method === 'sendMessage' && x.chat_id === 7 && /Ананасы/.test(x.text)) && last.some(x => x.method === 'setMessageReaction'), '/problems уходит в личку');
+b = sent.length;
+await say('/report 21.11');
+last = sent.slice(b);
+assert(last.every(x => x.method === 'setMessageReaction' || x.chat_id === 7 || x.method === 'sendDocument') && !last.some(x => x.chat_id === -100 && x.method === 'sendMessage'), '/report: в группе ни слова, отчёт в личке');
+await handleUpdate({ message: { message_id: 999, chat: { id: 7, type: 'private' }, from: { id: 7 }, text: '/start' } });
+const { dailyReport } = await import('../lib/bot.js');
+assert(await dailyReport() === 'sent', 'утренний отчёт владельцу');
 
 process.env.ALLOWED_CHATS = '-555';
 o = await say('/stock');

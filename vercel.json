@@ -3,5 +3,18 @@
   "buildCommand": "echo no-build",
   "installCommand": "echo no-install",
   "outputDirectory": "public",
-  "functions": { "api/telegram.js": { "maxDuration": 60 } }
+  "functions": {
+    "api/telegram.js": {
+      "maxDuration": 60
+    },
+    "api/cron.js": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 4 * * *"
+    }
+  ]
 }

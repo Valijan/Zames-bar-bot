@@ -80,3 +80,16 @@ const b2 = sent.length;
 await dailyReport();
 const morning = sent.slice(b2).map(x => x.text || x.filename || '').join('\n');
 ok(/Скоро закончится/.test(morning) || /отчёт|Отчёт/.test(morning), 'утренний отчёт отработал');
+
+// четверг
+const { thursdayReminder } = await import('../lib/extra.js');
+const fake = { chat: { id: 7, type: 'private' }, from: { id: 7 } };
+let b3 = sent.length; await thursdayReminder(fake, 'morning');
+let th = sent.slice(b3).map(x => x.text).join('\n');
+ok(/ЧЕТВЕРГ|СЕГОДНЯ ЧЕТВЕРГ/.test(th) && /Закупка на 7 дней/.test(th), 'четверг: напоминание + список заказа');
+o = await send('/supplier', P);
+ok(/Coca-Cola/.test(o) && /Чорток/.test(o), '/supplier: кола и Чорток по умолчанию');
+o = await send('/supplier Нестле: Сливки 10%, Молоко', P);
+ok(/Нестле: Сливки 10%, Молоко/.test(o), '/supplier: привязка');
+b3 = sent.length; const r = await thursdayReminder(fake, 'last');
+ok(r === 'ok, заказы внесены', 'четверг 15:00: молчит, если приход с поставщиком был');

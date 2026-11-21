@@ -1,6 +1,7 @@
 // Один раз открыть в браузере: https://<проект>.vercel.app/api/setup?key=<SETUP_KEY>
 import { TOKEN } from '../lib/telegram.js';
 import { redis } from '../lib/redis.js';
+import { testGemini } from '../lib/vision.js';
 
 export default async function handler(req, res) {
   const key = new URL(req.url, 'http://x').searchParams.get('key');
@@ -10,13 +11,7 @@ export default async function handler(req, res) {
   try { await redis('PING'); } catch (e) { db = 'НЕТ БАЗЫ: ' + e.message + ' — подключите Storage → Upstash Redis и Redeploy'; }
   let gemini = 'нет ключа — отправьте боту в личку /gemini AIza…';
   const gk = process.env.GEMINI_API_KEY || await redis('GET', 'gemini_key').catch(() => null);
-  if (gk) {
-    try {
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent?key=${gk}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Ответь одним словом: ок' }] }] }) });
-      const j = await r.json();
-      gemini = j.error ? 'ошибка: ' + j.error.message : 'ok';
-    } catch (e) { gemini = 'ошибка: ' + e.message; }
-  }
+  if (gk) { const t = await testGemini(gk); gemini = t.error ? 'ошибка: ' + t.error : 'ok (' + t.model + ')'; }
   const api = `https://api.telegram.org/bot${TOKEN()}`;
   const post = (m, b) => fetch(`${api}/${m}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json());
   const hook = await post('setWebhook', {

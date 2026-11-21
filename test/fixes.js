@@ -1,0 +1,33 @@
+import { handleUpdate } from '../lib/bot.js';
+import { sent } from '../lib/telegram.js';
+import { products } from '../lib/store.js';
+process.env.QUIET = '0';
+let id = 1;
+const P = { id: 7, type: 'private' }, G = { id: -100, type: 'supergroup' };
+const send = async (text, chat = G, topic, mid) => { const b = sent.length; await handleUpdate({ message: { message_id: mid || id++, chat, from: { id: 7, first_name: 'ZXC' }, text, ...(topic ? { is_topic_message: true, message_thread_id: 5, reply_to_message: { forum_topic_created: { name: topic } } } : {}) } }); return sent.slice(b).map(x => x.text || '').join('\n'); };
+const ok = (c, m) => { if (!c) { console.error('❌', m); process.exitCode = 1; } else console.log('✔', m); };
+await send('/start', P);
+let o = await send('Лимон 11.5 кг 22400\nЯблоко 8.6 кг 12320\nАпельсин 11.9 кг 22400\nАссам 2 кг 1 360 000', G, 'Приход');
+let p = await products();
+ok(Math.round(p['Лимон'].cost * 1000) === 22400, 'лимон: 22 400 понято как цена за кг');
+ok(Math.round(p['Яблоко'].cost * 1000) === 12320, 'яблоко: цена за кг');
+ok(p['Апельсин'] && p['Апельсин'].unit === 'г' && p['Апельсиновый фреш (сок)'].stock === 0, 'апельсин — отдельный продукт, не фреш');
+ok(Math.round(p['Ассам'].cost * 1000) === 680000, 'ассам 1 360 000 за 2 кг — сумма за строку');
+o = await send('Лимон 5 кг 115000', G, 'Приход');
+p = await products();
+ok(Math.round(p['Лимон'].lastPrice * 1000) === 23000, 'лимон 5 кг 115 000 — сумма (ближе к прошлой цене)');
+o = await send('Молоко 10 л 13000 за л', G, 'Приход');
+p = await products();
+ok(Math.round(p['Молоко'].lastPrice * 1000) === 13000, '«за л» — явная цена за литр');
+// дубль от повтора Telegram
+await send('Мята 200 г', G, 'Приход', 9999); await send('Мята 200 г', G, 'Приход', 9999);
+p = await products();
+ok(p['Мята'].stock === 200, 'повтор того же сообщения не задвоился');
+// /log + /del
+o = await send('/log', P);
+ok(/1\.<\/b> <b>Приход/.test(o) && /\/del/.test(o), '/log с номерами');
+o = await send('/del 1', P);
+p = await products();
+ok(/Удалил/.test(o) && p['Мята'].stock === 0, '/del удалил запись и вернул остаток');
+o = await send('Манго пюре 1 кг 90000', G, 'Приход');
+ok(/новый продукт/.test(o) && !/Концентрат Манго/.test(o), 'незнакомое название — новый продукт, без ложного совпадения');

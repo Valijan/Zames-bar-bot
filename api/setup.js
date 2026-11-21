@@ -8,10 +8,11 @@ export default async function handler(req, res) {
   if (!TOKEN()) return res.status(500).send('Нет токена бота: добавьте переменную TELEGRAM_BOT_TOKEN в Vercel → Settings → Environment Variables и сделайте Redeploy');
   let db = 'ok';
   try { await redis('PING'); } catch (e) { db = 'НЕТ БАЗЫ: ' + e.message + ' — подключите Storage → Upstash Redis и Redeploy'; }
-  let gemini = 'нет GEMINI_API_KEY';
-  if (process.env.GEMINI_API_KEY) {
+  let gemini = 'нет ключа — отправьте боту в личку /gemini AIza…';
+  const gk = process.env.GEMINI_API_KEY || await redis('GET', 'gemini_key').catch(() => null);
+  if (gk) {
     try {
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent?key=${process.env.GEMINI_API_KEY}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Ответь одним словом: ок' }] }] }) });
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent?key=${gk}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Ответь одним словом: ок' }] }] }) });
       const j = await r.json();
       gemini = j.error ? 'ошибка: ' + j.error.message : 'ok';
     } catch (e) { gemini = 'ошибка: ' + e.message; }

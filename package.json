@@ -4,5 +4,5 @@
   "private": true,
   "type": "module",
   "engines": { "node": "22.x" },
-  "scripts": { "test": "MEMORY_DB=1 node test/run.js && MEMORY_DB=1 node test/extra.js && MEMORY_DB=1 node test/fixes.js && MEMORY_DB=1 node test/history.js" }
+  "scripts": { "test": "MEMORY_DB=1 node test/run.js && MEMORY_DB=1 node test/extra.js && MEMORY_DB=1 node test/fixes.js && MEMORY_DB=1 node test/history.js && MEMORY_DB=1 node test/photos.js" }
 }

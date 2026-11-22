@@ -68,7 +68,7 @@ assert(/Концентрат ягодный — 150 г/.test(o), 'техкарт
 o = await say('/alias сгущ = Сгущенка');
 o = await say('Сгущ 1 шт', 'Списание');
 assert(/Сгущенка: -1 шт/.test(o), 'алиас работает');
-o = await say('/undo');
+o = await say('/undo'); o = await say('/undo да');
 assert(/Отменил: Списание/.test(o), 'undo');
 const p = await products();
 assert(p['Сгущенка'].stock === 2, 'undo вернул остаток');

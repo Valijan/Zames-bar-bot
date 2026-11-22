@@ -36,3 +36,15 @@ o = await send('Ягодный 4\nМалина персик 4', G, 'Приход
 o = await send('Ягодный 4 л 540000\nМалина персик 4 л 540000', G, 'Приход');
 p = await products();
 ok(p['Концентрат ягодный'].stock === 4000 && Math.round(p['Концентрат ягодный'].cost * 1000) === 135000 && /уже был записан/.test(o), 'текст + счёт: остаток не задвоился, цена 135 000/л подставилась');
+// /undo по ошибке → /trash → /restore
+o = await send('Перемещение на кухню\nЛимон 500 г', G);
+const before = (await products())['Лимон'].stock;
+o = await send('/undo', G);
+ok(/Отменить последнюю запись\?/.test(o) && (await products())['Лимон'].stock === before, '/undo без «да» только спрашивает');
+o = await send('/undo да', G);
+ok((await products())['Лимон'].stock === before + 500, '/undo да отменил перемещение');
+o = await send('/trash', P);
+ok(/Перемещение → Кухня/.test(o), '/trash показывает отменённое перемещение');
+o = await send('/restore 1', P);
+const { dprods } = await import('../lib/store.js');
+ok(/Вернул/.test(o) && (await products())['Лимон'].stock === before && (await dprods())['Кухня|Лимон']?.stock >= 500, '/restore вернул перемещение и склад кухни');

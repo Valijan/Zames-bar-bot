@@ -40,7 +40,7 @@ const barMilk = (await products())['Молоко'].stock;
 ok(barMilk === 17000, 'склад бара не тронут списанием кухни');
 o = await send('Инвентаризация кухня\nМолоко 2 л');
 ok(/факт 2 л/.test(o) && /недостача/.test(o), 'инвентаризация кухни');
-o = await send('/undo');
+o = await send('/undo да');
 dp = await dprods();
 ok(dp['Кухня|Молоко']?.stock === 2500, 'undo инвентаризации цеха');
 o = await send('/dept кухня', P);

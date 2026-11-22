@@ -32,5 +32,5 @@ export default async function handler(req, res) {
   const me = await post('getMe', {});
   await new Promise(r => setTimeout(r, 1500));
   const info = (await post('getWebhookInfo', {})).result || {};
-  res.status(200).json({ tg_last_error: info.last_error_message || 'нет', tg_last_error_date: info.last_error_date ? new Date(info.last_error_date * 1000).toISOString() : null, tg_pending: info.pending_update_count, tg_url: info.url, bot: me.result?.username, webhook: hook.ok ? 'подключён' : hook, redis: db, gemini, commands: cmds.ok });
+  res.status(200).json({ version: 'v-photo-fast', tg_last_error: info.last_error_message || 'нет', tg_last_error_date: info.last_error_date ? new Date(info.last_error_date * 1000).toISOString() : null, tg_pending: info.pending_update_count, tg_url: info.url, bot: me.result?.username, webhook: hook.ok ? 'подключён' : hook, redis: db, gemini, commands: cmds.ok });
 }
